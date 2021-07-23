@@ -1,0 +1,664 @@
+////////////////////////////////////////////////////////////////
+//                                                            //
+//                   PyNFT's JSON protocol                    //
+//                                                            //
+////////////////////////////////////////////////////////////////
+
+
+Disclaimer :
+some types are written as *STRING*, they are a specific yet uncreated DATA_FIELDs (specific values not listed)
+some types are STRING but aren't flagged as *STRING* yet
+
+JSON nftables Documentation :
+https://manpages.debian.org/unstable/libnftables1/libnftables-json.5.en.html
+
+
+
+Understanding the architecture :
+
+	- { }
+	JSON object
+
+	- []
+	an empty array
+
+	- ""
+	an empty string (strings are litteral values)
+
+	- OBJ (any full caps word)
+	represents the name of a class or value list
+
+	- OBJ_A =: OBJ_B
+	represents equality between OBJ_A and OBJ_B, equality is litteral text replaceability
+
+	- [ OBJ_A +, OBJ_B ]
+	represents an array of 1 object called OBJ_A or an array containing OBJ_A as firste element with potentially "infinitely" more OBJ_Bs as long as they are comma separated
+
+	- OBJ_A [, OBJ_B ]
+	represents a single OBJ_A or a comma separated array of OBJ_A and OBJ_B in that order
+
+	- OBJ_A | OBJ_B
+	represents the enumerated value possibilities, OBJ_A or OBJ_B
+
+	- { OBJ_KEY: OBJ_VALUE }
+	represents a JSON object
+
+	OBJ_KEY and OBJ_VALUE have a 1 to 1 defintion schema
+	ex: CMD_OBJECT
+	CMD_ADD only goes with "add" CMD_KEY
+	ex: VERDICT
+	VERDICT_RETURN only goes with "return" VERDICT_KEY
+
+	- "value"
+	represents a litteral string, value should not be changed
+
+	- *STRING* (work in progress)
+	represents known untraced type (== DATA_FIELD)
+	Beware: some types are not yet named or enumerated
+
+
+
+#
+#	Meta
+#
+
+	NFT_OBJECT := { "nftables": OBJECTS }
+
+	OBJECTS := RULESET_OBJECTS | CMD_OBJECTS | METAINFO_OBJECT
+
+	RULESET_OBJECTS := [ RULESET_OBJECT +, RULESET_OBJECT ]
+
+	CMD_OBJECTS := [ CMD_OBJECT +, CMD_OBJECT ]
+
+	METAINFO_OBJECT := [
+		{ "metainfo": {
+			"version": STRING,
+			"release_name": STRING,
+			"json_schema_version": INTEGER
+		}}
+	]
+
+
+
+#
+#	Command Objects
+#
+
+	CMD_OBJECT := CMD_ADD
+				| CMD_REPLACE
+				| CMD_CREATE
+				| CMD_INSERT
+				| CMD_DELETE
+				| CMD_LIST
+				| CMD_RESET
+				| CMD_FLUSH
+				| CMD_RENAME
+
+	CMD_ADD := { "add": ADD_OBJECT }
+	ADD_OBJECT := TABLE
+				| CHAIN
+				| RULE
+				| SET
+				| MAP
+				| ELEMENT
+				| FLOWTABLE
+				| COUNTER
+				| QUOTA
+				| CT_HELPER
+				| LIMIT
+				| CT_TIMEOUT
+				| CT_EXPECTATION
+
+	CMD_REPLACE := { "replace": RULE }
+
+	CMD_CREATE := { "create": ADD_OBJECT }
+
+	CMD_INSERT := { "insert": RULE }
+
+	CMD_DELETE := { "delete": ADD_OBJECT }
+
+	CMD_LIST := { "list": LIST_OBJECT }
+	LIST_OBJECT := RULESET
+				| TABLES
+				| CHAINS
+				| SETS
+				| MAPS
+				| FLOWTABLES
+				| COUNTERS
+				| QUOTAS
+				| CT_HELPERS
+				| LIMITS
+				| METERS
+				| CT_TIMEOUT
+				| CT_EXPECTATION
+
+	CMD_RESET := { "reset": RESET_OBJECT }
+	RESET_OBJECT := COUNTERS | QUOTAS
+
+	CMD_FLUSH := { "flush": FLUSH_OBJECT }
+	FLUSH_OBJECT := RULESET | TABLE | CHAIN | SET | MAP | METER
+
+	CMD_RENAME := { "rename": CHAIN }
+
+
+
+#
+#	Ruleset Objects
+#
+
+	RULESET_OBJECT := TABLE
+				| CHAIN
+				| RULE
+				| SET
+				| MAP
+				| ELEMENT
+				| FLOWTABLE
+				| COUNTER
+				| QUOTA
+				| CT_HELPER
+				| LIMIT
+				| CT_TIMEOUT
+				| CT_EXPECTATION
+
+	RULESET := { "ruleset": null }
+
+	TABLES := TABLE | TABLE_ARRAY
+	TABLE_ARRAY := [ TABLE +, TABLE ]
+	TABLE := { "table": {
+		"family": ADDR_FAMILY,
+		"name": STRING,
+		"handle": INTEGER
+	}}
+	ADDR_FAMILY := "ip", "ip6", "inet", "arp", "bridge", "netdev"
+
+	CHAINS := CHAIN | CHAIN_ARRAY
+	CHAIN_ARRAY := [ CHAIN +, CHAIN ]
+	CHAIN := { "chain": {
+		"family": ADDR_FAMILY,
+		"table": STRING,
+		"name": STRING,
+		"newname": STRING,
+		"handle": INTEGER,
+		"type": CHAIN_TYPE,
+		"hook": CHAIN_HOOK,
+		"prio": CHAIN_PRIORITY,
+		"dev": STRING,
+		"policy": CHAIN_POLICY
+	}}
+	CHAIN_TYPE := "filter" | "route" | "nat"
+	CHAIN_HOOK := "prerouting" | "input" | "forward" | "output" | "postrouting" | "ingress"
+	CHAIN_PRIORITY := -400 | -300 | -225 | -200 | -150 | -100 | 0 | 50 | 100 | 225 | 300
+	CHAIN_POLICY := "accept" | "drop" | "queue" | "continue" | "return"
+
+	RULE := { "rule": {
+		"family": ADDR_FAMILY,
+		"table": STRING,
+		"chain": STRING,
+		"expr": STATEMENT_ARRAY,
+		"handle": INTEGER,
+		"index": INTEGER,
+		"comment": STRING
+	}}
+
+	SETS := SET | SET_ARRAY
+	SET_ARRAY := [ SET +, SET ]
+	SET := { "set": {
+		"family": ADDR_FAMILY,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"type": SET_TYPES,
+		"policy": SET_POLICY,
+		"flags": SET_FLAG_ARRAY,
+		"elem": SET_ELEMENTS,
+		"timeout": INTEGER,
+		"gc-interval": INTEGER,
+		"size": INTEGER
+	}}
+	SET_TYPES := SET_TYPE | SET_TYPE_ARRAY
+	SET_TYPE_ARRAY := [ SET_TYPE +, SET_TYPE ]
+	SET_TYPE := "ipv4_addr" | "ipv6_addr" | "ether_addr" | "inet_proto" | "inet_service" | "mark" | "ifname"
+	SET_POLICY := "performance" | "memory"
+	SET_FLAG_ARRAY := [ SET_FLAG +, SET_FLAG ]
+	SET_FLAG := "constant" | "interval" | "timeout"
+	SET_ELEMENTS := EXPRESSIONS | ELEMENTS
+
+	MAPS := MAP | MAP_ARRAY
+	MAP_ARRAY := [ MAP +, MAP ]
+	MAP := { "map": {
+		"family": ADDR_FAMILY,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"type": SET_TYPE,
+		"map": STRING,
+		"policy": SET_POLICY,
+		"flags": [ SET_FLAG_ARRAY ],
+		"elem": SET_ELEMENTS,
+		"timeout": INTEGER,					# => INTEGER or NUMBER in this format: "v1dv2hv3mv4s" (ex: 3h45s)
+		"gc-interval": INTEGER,
+		"size": INTEGER
+	}}
+
+	ELEMENTS := ELEMENT | ELEMENT_ARRAY
+	ELEMENT_ARRAY := [ ELEMENT +, ELEMENT ]
+	ELEMENT := { "element": {
+		"family": ADDR_FAMILY,
+		"table": STRING,
+		"name": STRING,
+		"elem": EXPRESSIONS
+	}}
+
+	FLOWTABLES := FLOWTABLE | FLOWTABLE_ARRAY
+	FLOWTABLE_ARRAY := [ FLOWTABLE +, FLOWTABLE ]
+	FLOWTABLE := { "flowtable": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"hook": STRING,
+		"prio": INTEGER,
+		"dev": FT_INTERFACES
+	}}
+	FT_INTERFACES := *FT_INTERFACE* | FT_INTERFACE_ARRAY
+	FT_INTERFACE_ARRAY := [ *FT_INTERFACE* +, *FT_INTERFACE* ]
+	FT_INTERFACE := *STRING*
+
+	COUNTERS := COUNTER | COUNTER_ARRAY
+	COUNTER_ARRAY := [ COUNTER +, COUNTER ]
+	COUNTER := { "counter": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"packets": INTEGER,
+		"bytes": INTEGER
+	}}
+
+	QUOTAS := QUOTA | QUOTA_ARRAY
+	QUOTA_ARRAY := [ QUOTA +, QUOTA ]
+	QUOTA := { "quota": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"bytes": INTEGER,
+		"used": INTEGER,
+		"inv": BOOLEAN
+	}}
+
+	CT_HELPERS := CT_HELPER | CT_HELPER_ARRAY
+	CT_HELPER_ARRAY := [ CT_HELPER +, CT_HELPER ]
+	CT_HELPER := { "ct helper": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"type": STRING,
+		"protocol": CT_HELPER_PROTO,
+		"l3proto": STRING
+	}}
+	CT_HELPER_PROTO := "tcp" | "udp"
+
+	LIMITS := LIMIT | LIMIT_ARRAY
+	LIMIT_ARRAY := [ LIMIT +, LIMIT ]
+	LIMIT := { "limit": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"rate": INTEGER,
+		"per": STRING,
+		"burst": INTEGER,
+		"unit": LIMIT_UNIT,
+		"inv": BOOLEAN
+	}}
+	LIMIT_UNIT := "packets" | "bytes"
+
+	CT_TIMEOUT := { "ct timeout": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"protocol": CT_TIMEOUT_PROTO,
+		"state": STRING,
+		"value": INTEGER,
+		"l3proto": STRING
+	}}
+	CT_TIMEOUT_PROTO := "tcp" | "udp" | "dccp" | "sctp" | "gre" | "icmpv6" | "icmp" | "generic"
+
+	CT_EXPECTATION := { "ct expectation": {
+		"family": STRING,
+		"table": STRING,
+		"name": STRING,
+		"handle": INTEGER,
+		"l3proto": STRING
+		"protocol": CT_EXPECTATION_PROTO,
+		"dport": INTEGER,
+		"timeout": INTEGER,
+		"size": INTEGER,
+	}}
+	CT_EXPECTATION_PROTO := "tcp" | "udp" | "dccp" | "sctp" | "gre" | "icmpv6" | "icmp" | "generic"
+
+
+
+#
+#	Statements
+#
+
+	STATEMENTS := STATEMENT | STATEMENT_ARRAY
+	STATEMENT_ARRAY := [ STATEMENT +, STATEMENT ]
+	STATEMENT := VERDICT
+				| MATCH
+				| COUNTER
+				| MANGLE
+				| ANONYMOUS_QUOTA
+				| QUOTA_REFERENCE
+				| LIMIT
+				| FWD
+				| NOTRACK
+				| DUP
+				| NATWORK_ADDRESS_TRANSLATION
+				| REJECT
+				| SET
+				| LOG
+				| CT_HELPER
+				| METER
+				| QUEUE
+				| VERDICT_MAP
+				| CT_COUNT
+				| CT_TIMEOUT
+				| CT_EXPECTATION
+				| XT
+
+	VERDICT := VERDICT_ACCEPT
+			| VERDICT_DROP
+			| VERDICT_CONTINUE
+			| VERDICT_RETURN
+			| VERDICT_JUMP
+			| VERDICT_GOTO
+	VERDICT_ACCEPT := { "accept": null }
+	VERDICT_DROP := { "drop": null }
+	VERDICT_CONTINUE := { "continue": null }
+	VERDICT_RETURN := { "return": null }
+	VERDICT_JUMP := { "jump": { "target": STRING }}
+	VERDICT_GOTO := { "goto": { "target": STRING }}
+
+	MATCH := { "match": {
+		"left": EXPRESSION,
+		"right": EXPRESSION,
+		"op": OPERATOR
+	}}
+	OPERATOR := "&"
+			| "|"
+			| "^"
+			| "<<"
+			| ">>"
+			| "=="
+			| "!="
+			| "<"
+			| ">"
+			| "<="
+			| ">="
+			| "in"
+
+	COUNTER := { "counter": COUNTER_VALUE }
+	COUNTER_VALUE := STRING | {
+		"packets": INTEGER,
+		"bytes": INTEGER
+	}
+
+	MANGLE := { "mangle": {
+		"key": EXPRESSION,
+		"value": EXPRESSION
+	}}
+
+	ANONYMOUS_QUOTA := { "quota": {
+		"val": INTEGER,
+		"val_unit": STRING,
+		"used": INTEGER,
+		"used_unit": STRING,
+		"inv": BOOLEAN
+	}}
+	QUOTA_REFERENCE := { "quota": STRING }
+
+	ANONYMOUS_LIMIT := { "limit": {
+		"rate": INTEGER,
+		"rate_unit": STRING,
+		"per": STRING,
+		"burst": INTEGER,
+		"burst_unit": STRING,
+		"inv": BOOLEAN
+	}}
+	LIMIT_REFERENCE := { "limit": STRING }
+
+	FWD := { "fwd": {
+		"dev": EXPRESSION,
+		"family": FWD_FAMILY,
+		"addr": EXPRESSION
+	}}
+	FWD_FAMILY := "ip" | "ip6"
+
+	NOTRACK := { "notrack": null }
+
+	DUP := { "dup": {
+		"addr": EXPRESSION,
+		"dev": EXPRESSION
+	}}
+
+	NAT := NAT_SNAT | NAT_DNAT | NAT_MASQUERADE | NAT_REDIRECT
+
+	NAT_SNAT := { "snat": {
+		"addr": EXPRESSION,
+		"family": STRING,
+		"port": EXPRESSION,
+		"flags": NAT_REDIRECT_FLAGS
+	}}
+
+	NAT_DNAT := { "dnat": {
+		"addr": EXPRESSION,
+		"family": STRING,
+		"port": EXPRESSION,
+		"flags": NAT_REDIRECT_FLAGS
+	}}
+
+	NAT_MASQUERADE := { "masquerade": {
+		"port": EXPRESSION,
+		"flags": NAT_REDIRECT_FLAGS
+	}}
+
+	NAT_REDIRECT := { "redirect": {
+		"port": EXPRESSION,
+		"flags": NAT_REDIRECT_FLAGS
+	}}
+	NAT_REDIRECT_FLAGS := NAT_REDIRECT_FLAG | NAT_REDIRECT_FLAG_ARRAY
+	NAT_REDIRECT_FLAG_ARRAY := [ NAT_REDIRECT_FLAG +, NAT_REDIRECT_FLAG ]
+	NAT_REDIRECT_FLAG := "random" | "fully-random" | "persistent"
+
+	REJECT := { "reject": {
+		"type": STRING,
+		"expr": EXPRESSION
+	}}
+
+	SET_UPDATE := { "set": {
+		"op": STRING_OPERATOR,
+		"elem": EXPRESSION,
+		"set": STRING
+	}}
+	STRING_OPERATOR := "add" | "update"
+
+	LOG := { "log": {
+		"prefix": STRING,
+		"group": INTEGER,
+		"snaplen": INTEGER,
+		"queue-threshold": INTEGER,
+		"level": LEVEL,
+		"flags": LOG_FLAGS
+	}}
+	LEVEL := "emerg" | "alert" | "crit" | "err" | "warn" | "notice" |  "info" | "debug" | "audit"
+	LOG_FLAGS := LOG_FLAG | LOG_FLAG_ARRAY
+	LOG_FLAG_ARRAY := [ LOG_FLAG +, LOG_FLAG ]
+	LOG_FLAG := "tcp sequence" | "tcp options" | "ip options" | "skuid" | "ether" | "all"
+
+	CT_HELPER := { "ct helper": EXPRESSION }
+
+	METERS := METER | METER_ARRAY
+	METER_ARRAY := [ METER +, METER ]
+	METER := { "meter": {
+		"name": STRING,
+		"key": EXPRESSION,
+		"stmt": STATEMENT
+	}}
+
+	QUEUE := { "queue": {
+		"num": EXPRESSION,
+		"flags": QUEUE_FLAGS
+	}}
+	QUEUE_FLAGS := QUEUE_FLAG | QUEUE_FLAG_ARRAY
+	QUEUE_FLAG_ARRAY := [ QUEUE_FLAG +, QUEUE_FLAG ]
+	QUEUE_FLAG := "bypass" | "fanout"
+
+	VERDICT_MAP := { "vmap": {
+		"key": EXPRESSION,
+		"data": EXPRESSION
+	}}
+
+	CT_COUNT := { "ct count": {
+		"val": INTEGER,
+		"inv": BOOLEAN
+	}}
+
+	CT_TIMEOUT := { "ct timeout": EXPRESSION }
+
+	CT_EXPECTATION := { "ct expectation": EXPRESSION }
+
+	XT := { "xt": null }
+
+
+
+#
+#	Expressions
+#
+
+	EXPRESSIONS := EXPRESSION | EXPRESSION_ARRAY
+	EXPRESSION_ARRAY := [ EXPRESSION +, EXPRESSION ]
+	EXPRESSION := IMMEDIATE | EXPRESSION_ARRAY | CONCAT | SET | MAP | PREFIX | RANGE | PAYLOAD | EXTHDR | TCP_OPTION | META | RT | CT | NUMGEN | HASH | FIB | BINARY_OPERATION | VERDICT | ELEM | SOCKET | OSF
+
+	IMMEDIATE := STRING | INTEGER | BOOLEAN
+
+	# isn't named EXPRESSION_ARRAY for architecture norm
+	LISTS := [ EXPRESSION +, EXPRESSION ]
+
+	CONCAT := { "concat": CONCAT_VALUE }
+	CONCAT_VALUE := [ EXPRESSIONS ]
+
+	SET := { "set": SET_VALUE }
+	SET_VALUE := EXPRESSIONS
+
+	MAP := { "map": {
+		"key": EXPRESSION,
+		"data": EXPRESSION
+	}}
+
+	PREFIX := { "prefix": {
+		"addr": EXPRESSION,
+		"len": INTEGER
+	}}
+
+	RANGE := { "range": [ EXPRESSION , EXPRESSION ] }
+
+	PAYLOAD := { "payload": PAYLOAD_VALUE }
+	PAYLOAD_VALUE := RAW_PAYLOAD | REFERENCE_PAYLOAD
+
+	RAW_PAYLOAD := {
+		"base": BASE,
+		"offset": INTEGER,
+		"len": INTEGER
+	}
+	BASE := "ll" | "nh" | "th"
+
+	REFERENCE_PAYLOAD := {
+		"protocol": STRING,
+		"field": STRING
+	}
+
+	EXTHDR := { "exthdr": {
+		"name": STRING,
+		"field": STRING,
+		"offset": INTEGER
+	}}
+
+	TCP OPTION := { "tcp option": {
+		"name": STRING,
+		"field": STRING
+	}}
+
+	META := { "meta": {
+		"key": META_KEY
+	}}
+	META_KEY := "length" | "protocol" | "priority" | "random" | "mark" | "iif" | "iifname" | "iiftype" | "oif" | "oifname" | "oiftype" | "skuid" | "skgid" | "nftrace" | "rtclassid" | "ibriport" | "obriport" | "ibridgename" | "obridgename" | "pkttype" | "cpu" | "iifgroup" | "oifgroup" | "cgroup" | "nfproto" | "l4proto" | "secpath"
+
+	RT := { "rt": {
+		"key": RT_KEY,
+		"family": RT_FAMILY
+	}}
+	RT_KEY := "classid" | "nexthop" | "mtu"
+	RT_FAMILY := "ip" | "ip6"
+
+	CT := { "ct": {
+		"key": STRING,
+		"family": CT_FAMILY,
+		"dir": CT_DIRECTION
+	}}
+	CT_FAMILY := "ip" | "ip6"
+	CT_DIRECTION := "original" | "reply"
+
+	NUMGEN := { "numgen": {
+		"mode": NG_MODE,
+		"mod": INTEGER,
+		"offset": INTEGER
+	}}
+	NG_MODE := "inc" | "random"
+
+	HASH := HASH_JHASH | HASH_SYMHASH
+	HASH_JHASH :=  { "jhash": {
+		"mod": INTEGER,
+		"offset": INTEGER,
+		"expr": EXPRESSION,
+		"seed": INTEGER
+	}}
+	HASH_SYMHASH := { "symhash": {
+		"mod": INTEGER,
+		"offset": INTEGER
+	}}
+
+	FIB := { "fib": {
+		"result": FIB_RESULT,
+		"flags": FIB_FLAGS
+	}}
+	FIB_RESULT := "oif" | "oifname" | "type"
+	FIB_FLAGS := FIB_FLAG | FIB_FLAG_ARRAY
+	FIB_FLAG_ARRAY := [ FIB_FLAG +, FIB_FLAG ]
+	FIB_FLAG := "saddr" | "daddr" | "mark" | "iif" | "oif"
+
+	BINARY_OPERATION := { BO_KEY: [ EXPRESSION, EXPRESSION ] }
+	BO_KEY := "|" | "^" | "&" | "<<" | ">>"
+
+	ELEM := { "elem": {
+		"val": EXPRESSION,
+		"timeout": INTEGER,
+		"expires": INTEGER,
+		"comment": STRING
+	}}
+
+	SOCKET := { "socket": {
+		"key": SOCKET_KEY
+	}}
+	SOCKET_KEY := "transparent"
+
+	OSF := { "osf": {
+		"key": OSF_KEY,
+		"ttl": OSF_TTL
+	}}
+	OSF_KEY := "name"
+	OSF_TTL := "loose" | "skip"
