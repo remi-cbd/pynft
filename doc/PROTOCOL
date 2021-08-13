@@ -7,9 +7,8 @@
 
 Warning :
 
-This protocol is a work in progress, some types aren't enumerated yet.
-They are written as *STRING*.
-Some types might not even be flagged as *STRING* yet.
+This protocol is a work in progress, some types might not be enumerated yet.
+Some are written as *STRING*. Some might not be flagged as *STRING* yet.
 
 
 
