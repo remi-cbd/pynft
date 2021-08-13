@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 
-from pynft.objects.meta import Options
+from pynft.meta import OBJ_BASE
 from typing import Any
 from typeguard import check_type
 
 
-class NFT_OBJ(Options):
+class NFT_OBJ(OBJ_BASE):
 
 	objname : str = ""
 

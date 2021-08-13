@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pynft.objects.rulesets import *
+from pynft.objects import *
 
 
 
@@ -50,29 +50,29 @@ class CMD_OBJ(NFT_OBJ):
 	objname : str = ""
 
 
-class CMD_ADD(CMD_OBJ):
+class ADD(CMD_OBJ):
 	add : ADD_OBJ
 
-class CMD_REPLACE(CMD_OBJ):
+class REPLACE(CMD_OBJ):
 	replace : RULE
 
-class CMD_CREATE(CMD_OBJ):
+class CREATE(CMD_OBJ):
 	create : ADD_OBJ
 
-class CMD_INSERT(CMD_OBJ):
+class INSERT(CMD_OBJ):
 	insert : RULE
 
-class CMD_DELETE(CMD_OBJ):
+class DELETE(CMD_OBJ):
 	delete : ADD_OBJ
 
-class CMD_LIST(CMD_OBJ):
+class LIST(CMD_OBJ):
 	list : LIST_OBJ
 
-class CMD_RESET(CMD_OBJ):
+class RESET(CMD_OBJ):
 	reset : RESET_OBJ
 
-class CMD_FLUSH(CMD_OBJ):
+class FLUSH(CMD_OBJ):
 	flush : FLUSH_OBJ
 
-class CMD_RENAME(CMD_OBJ):
+class RENAME(CMD_OBJ):
 	rename : CHAIN

@@ -5,12 +5,18 @@
 ////////////////////////////////////////////////////////////////
 
 
-Disclaimer :
-some types are written as *STRING*, they are a specific yet uncreated DATA_FIELDs (specific values not listed)
-some types are STRING but aren't flagged as *STRING* yet
+Warning :
+
+This protocol is a work in progress, some types aren't enumerated yet.
+They are written as *STRING*.
+Some types might not even be flagged as *STRING* yet.
+
+
+
 
 JSON nftables Documentation :
 https://manpages.debian.org/unstable/libnftables1/libnftables-json.5.en.html
+
 
 
 
@@ -19,42 +25,29 @@ Understanding the architecture :
 	- { }
 	JSON object
 
-	- []
+	- [ ]
 	an empty array
 
 	- ""
-	an empty string (strings are litteral values)
+	an empty string
+	values written between quotes are litteral constants
 
 	- OBJ (any full caps word)
 	represents the name of a class or value list
 
 	- OBJ_A =: OBJ_B
-	represents equality between OBJ_A and OBJ_B, equality is litteral text replaceability
+	represents equality between OBJ_A and OBJ_B
+	equality is litteral text replaceability
 
 	- [ OBJ_A +, OBJ_B ]
-	represents an array of 1 object called OBJ_A or an array containing OBJ_A as firste element with potentially "infinitely" more OBJ_Bs as long as they are comma separated
-
-	- OBJ_A [, OBJ_B ]
-	represents a single OBJ_A or a comma separated array of OBJ_A and OBJ_B in that order
+	represents an array of 1 object called OBJ_A or a comma separated array of OBJ_Bs with OBJ_A as first element
 
 	- OBJ_A | OBJ_B
-	represents the enumerated value possibilities, OBJ_A or OBJ_B
+	represents an enumeration of possible values, OBJ_A or OBJ_B
 
-	- { OBJ_KEY: OBJ_VALUE }
+	- { OBJ_A: OBJ_B }
 	represents a JSON object
 
-	OBJ_KEY and OBJ_VALUE have a 1 to 1 defintion schema
-	ex: CMD_OBJECT
-	CMD_ADD only goes with "add" CMD_KEY
-	ex: VERDICT
-	VERDICT_RETURN only goes with "return" VERDICT_KEY
-
-	- "value"
-	represents a litteral string, value should not be changed
-
-	- *STRING* (work in progress)
-	represents known untraced type (== DATA_FIELD)
-	Beware: some types are not yet named or enumerated
 
 
 
@@ -77,6 +70,7 @@ Understanding the architecture :
 			"json_schema_version": INTEGER
 		}}
 	]
+
 
 
 
@@ -139,6 +133,7 @@ Understanding the architecture :
 	FLUSH_OBJECT := RULESET | TABLE | CHAIN | SET | MAP | METER
 
 	CMD_RENAME := { "rename": CHAIN }
+
 
 
 
@@ -342,6 +337,7 @@ Understanding the architecture :
 
 
 
+
 #
 #	Statements
 #
@@ -533,6 +529,7 @@ Understanding the architecture :
 	CT_EXPECTATION := { "ct expectation": EXPRESSION }
 
 	XT := { "xt": null }
+
 
 
 
