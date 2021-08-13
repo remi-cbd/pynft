@@ -21,16 +21,6 @@ https://manpages.debian.org/unstable/libnftables1/libnftables-json.5.en.html
 
 Understanding the architecture :
 
-	- { }
-	JSON object
-
-	- [ ]
-	an empty array
-
-	- ""
-	an empty string
-	values written between quotes are litteral constants
-
 	- OBJ (any full caps word)
 	represents the name of a class or value list
 
