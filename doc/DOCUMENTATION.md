@@ -3,10 +3,11 @@
 Welcome to PyNFT's documentation.
 
 PyNFT is a collection of classes designed to facilitate the manipulation of NFTables in python.
+It is wrapped around the JSON-NFTables python executor (python3-nftables).
 
-It is wrapped around the JSON-NFTables python executor (named python3-nftables).
+The *PROTOCOL* file lists all data structures and enumeratable values used in JSON-NFTables.
 
-You can find links to NFTables' documentation, tutorials, and source code at the end of this file
+NFTables documentation can be found at the end of this file.
 
 
 
@@ -17,7 +18,7 @@ You can find links to NFTables' documentation, tutorials, and source code at the
 
 > **NFT_OBJ** is the base class for all data structures in pynft. It contains a "bake()" method that returns itself as a JSON-NFTables compatible string.
 
-> **CMD_OBJ** is the base class for command objects. They are the only executable objects.
+> **CMD_OBJ** inherits from NFT_OBJ. It is the base class for command objects, which are executable with the Executor.
 
 > **Executor** is the class that executes CMD_OBJs. It can also pretty print command outputs as well as any NFT_OBJ.
 
