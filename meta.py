@@ -2,14 +2,14 @@ import collections
 import typing
 
 __all__ = [
-	"Options",
+	"OBJ_BASE",
 ]
 
 
-class OptionsMeta(typing.NamedTupleMeta):
+class OBJ_META(typing.NamedTupleMeta):
 	def __new__(mcs, typename, bases, namespace):
 		if namespace.get('_root', False):
-			# The created class is `Options`, skip.
+			# The created class is `OBJ_BASE`, skip.
 			return super().__new__(mcs, typename, bases, namespace)
 
 		# Gather fields from annotations of current class and base classes.
@@ -18,8 +18,8 @@ class OptionsMeta(typing.NamedTupleMeta):
 		field_sources = {}  # which base class does the name came from
 		field_defaults = {}
 		for base in bases:
-			if issubclass(base, Options) and hasattr(base, '_fields'):
-				# Base class is a concrete subclass of `Options`.
+			if issubclass(base, OBJ_BASE) and hasattr(base, '_fields'):
+				# Base class is a concrete subclass of `OBJ_BASE`.
 				for name in base._fields:
 					if name in cur_fields:
 						# Make sure not to overwrite redefined fields.
@@ -36,7 +36,7 @@ class OptionsMeta(typing.NamedTupleMeta):
 						field_defaults[name] = base._field_defaults[name]
 		fields.update(cur_fields)
 		if len(fields) == 0:
-			raise ValueError("Options class must contain at least one field")
+			raise ValueError("OBJ_BASE class must contain at least one field")
 		for name, value in field_defaults.items():
 			namespace.setdefault(name, value)
 		
@@ -58,7 +58,7 @@ class OptionsMeta(typing.NamedTupleMeta):
 		s = (f"""
 		def __new__(_cls, *args, {arg_list}):
 			if len(args) > 0:
-				raise TypeError("Instances of Options class must be created "
+				raise TypeError("Instances of OBJ_BASE class must be created "
 								"with keyword arguments.")
 			return _tuple_new(_cls, ({arg_list}))
 		""").strip()
@@ -73,7 +73,7 @@ class OptionsMeta(typing.NamedTupleMeta):
 								  for name in fields_with_default}
 		nm_tpl.__new__ = __new__
 
-		# Wrap the return type in `OptionsMeta` so it can be subclassed.
+		# Wrap the return type in `OBJ_META` so it can be subclassed.
 		new_namespace = nm_tpl.__dict__.copy()
 		new_namespace['_bases'] = bases
 		# Also keep base classes of the `namedtuple` (i.e., the `tuple` class),
@@ -84,7 +84,7 @@ class OptionsMeta(typing.NamedTupleMeta):
 
 	def mro(cls):
 		default_mro = super().mro()
-		# `Options` does not define `_bases`, so we don't do anything about it.
+		# `OBJ_BASE` does not define `_bases`, so we don't do anything about it.
 		if hasattr(cls, '_bases'):
 			# `default_mro` should be `[cls, tuple, object]`.
 			# `c3merge` and `c3mro` are implementations of the C3 linearization
@@ -96,14 +96,14 @@ class OptionsMeta(typing.NamedTupleMeta):
 		return default_mro
 
 
-class Options(metaclass=OptionsMeta):
+class OBJ_BASE(metaclass=OBJ_META):
 	_root = True
 
 	def __new__(cls, *args, **kwargs):
 		# Copied from typing.Generic.
-		if cls is Options:
-			# Prevent instantiation of `Options` class.
-			raise TypeError("Type Options cannot be instantiated; "
+		if cls is OBJ_BASE:
+			# Prevent instantiation of `OBJ_BASE` class.
+			raise TypeError("Type OBJ_BASE cannot be instantiated; "
 							"it can be used only as a base class")
 		if (super().__new__ is object.__new__ and
 				cls.__init__ is not object.__init__):

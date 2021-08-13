@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-# from pynft.objects.root import NFT_OBJ
-# from pynft.objects.enumerations import *
-# from pynft.objects.expressions import *
-from pynft.objects.statements import *
+# from pynft.root import NFT_OBJ
+# from pynft.enumerations import *
+# from pynft.expressions import *
+from pynft.statements import *
 from typing import List, Union
 
 
