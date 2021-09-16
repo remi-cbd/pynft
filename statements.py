@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from pynft.root import NFT_OBJ
-from pynft.enumerations import *
-from pynft.expressions import *
 from typing import List, Union
+
+from pynft.root import NFT_OBJ
+from pynft.enumerations import FWD_FAMILY, LEVEL, LOG_FLAGS, NAT_REDIRECT_FLAGS, OPERATOR, QUEUE_FLAGS, SET_OPERATOR
+
 
 
 #
@@ -12,6 +13,9 @@ from typing import List, Union
 
 class STATEMENT(NFT_OBJ):
 	objname				: str					= ""
+
+STATEMENT_ARRAY = List[STATEMENT]
+STATEMENTS = Union[STATEMENT, STATEMENT_ARRAY]
 
 
 
@@ -40,6 +44,9 @@ class VERDICT_GOTO(VERDICT):
 	goto				: TARGET
 
 
+# j'ai besoin des VERDICTs dans EXPRESSION ... c'est tordu mais ça fonctionne
+from pynft.expressions import EXPRESSION
+
 
 class MATCH(STATEMENT):
 	objname				: str					= "match"
@@ -47,16 +54,13 @@ class MATCH(STATEMENT):
 	right				: EXPRESSION
 	op					: OPERATOR
 
-
-
-class COUNTER_RATE(STATEMENT):
-	packets				: int
-	bytes				: int
-
-COUNTER_VALUE = Union[str, COUNTER_RATE]
-
 class COUNTER(STATEMENT):
-	counter				: COUNTER_VALUE
+	objname				: str					= "counter"
+	packets				: Union[int, None]		= None
+	bytes				: Union[int, None]		= None
+
+class COUNTER_REF(STATEMENT):
+	counter				: str
 
 
 
@@ -119,6 +123,13 @@ class NAT(STATEMENT):
 
 class NAT_SNAT(NAT):
 	objname				: str					= "snat"
+	addr				: EXPRESSION
+	family				: str
+	port				: EXPRESSION
+	flags				: NAT_REDIRECT_FLAGS
+
+class NAT_DNAT(NAT):
+	objname				: str					= "dnat"
 	addr				: EXPRESSION
 	family				: str
 	port				: EXPRESSION

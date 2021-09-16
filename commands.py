@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-from pynft.objects import *
+from typing import Union
+
+from pynft.root import NFT_OBJ
+from pynft.statements import METER, METERS
+from pynft.objects import CHAIN, CHAINS, COUNTER, COUNTERS, CT_EXPECTATION, CT_HELPER, CT_HELPERS, CT_TIMEOUT, ELEMENT, FLOWTABLE, FLOWTABLES, LIMIT, LIMITS, MAP, MAPS, QUOTA, QUOTAS, RULE, RULESET, SET, SETS, TABLE, TABLES
 
 
 
