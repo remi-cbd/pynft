@@ -38,7 +38,7 @@ class CHAIN(RULESET_OBJ):
 	handle			: Union[int, None]				= None
 	type			: Union[CHAIN_TYPE, None]		= None
 	hook			: Union[CHAIN_HOOK, None]		= None
-	prio			: Union[CHAIN_PRIORITY, None]	= None
+	prio			: Union[CHAIN_PRIORITY, None]	= 0
 	dev				: Union[str, None]				= None
 	policy			: Union[CHAIN_POLICY, None]		= None
 
@@ -50,7 +50,7 @@ class RULE(RULESET_OBJ):
 	family			: ADDR_FAMILY
 	table			: str
 	chain			: str
-	expr			: Union[list, None]		= None
+	expr			: Union[list, None]				= None
 	handle			: Union[int, None]				= None
 	index			: Union[int, None]				= None
 	comment			: Union[str, None]				= None
@@ -96,7 +96,7 @@ class MAP(RULESET_OBJ):
 	policy			: Union[SET_POLICY, None]		= None
 	flags			: Union[SET_FLAG_ARRAY, None]	= None
 	elem			: Union[SET_ELEMENTS, None]		= None
-	timeout			: Union[int, None]				= None		# => in the doc:	NUMBER in this format: "v1dv2hv3mv4s" (ex: 3h45s)
+	timeout			: Union[int, None]				= None
 	gc_1_interval	: Union[int, None]				= None
 	size			: Union[int, None]				= None
 
@@ -168,7 +168,7 @@ class LIMIT(RULESET_OBJ):
 	rate			: int
 	per				: TIME_UNIT						= TIME_UNIT.SECOND
 	burst			: int							= 0
-	unit			: LIMIT_UNIT					= "packets"
+	unit			: LIMIT_UNIT					= LIMIT_UNIT.PACKETS
 	inv				: bool							= False
 
 LIMIT_ARRAY = List[LIMIT]

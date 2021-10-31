@@ -55,17 +55,17 @@ class PREFIX(EXPRESSION_OBJ):
 class RANGE(EXPRESSION_OBJ):
 	range		: two_expression_array
 
-class RAW_PAYLOAD(NFT_OBJ):
+class PAYLOAD(EXPRESSION_OBJ):
+	objname		: str					= "payload"
+
+class RAW_PAYLOAD(PAYLOAD):
 	base		: BASE
 	offset		: int
 	len			: int
 
-class REFERENCE_PAYLOAD(NFT_OBJ):
+class REFERENCE_PAYLOAD(PAYLOAD):
 	protocol	: str
 	field		: str
-
-class PAYLOAD(EXPRESSION_OBJ):
-	payload		: Union[RAW_PAYLOAD, REFERENCE_PAYLOAD]
 
 class EXTHDR(EXPRESSION_OBJ):
 	objname		: str					= "exthdr"

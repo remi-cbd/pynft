@@ -42,10 +42,8 @@ class OBJ_META(typing.NamedTupleMeta):
 		
 		# Reorder fields to put those without default values in front.
 		fields_with_default = [name for name in fields if name in namespace]
-		reordered_fields = (sorted(set(fields).difference(fields_with_default)) +
-							sorted(fields_with_default))
-		namespace['__annotations__'] = collections.OrderedDict(
-			[(name, fields[name]) for name in reordered_fields])
+		reordered_fields = (sorted(set(fields).difference(fields_with_default)) + sorted(fields_with_default))
+		namespace['__annotations__'] = collections.OrderedDict([(name, fields[name]) for name in reordered_fields])
 
 		# Let `NamedTupleMeta` create a annotated `namedtuple` for us.
 		# Note that `bases` is not used here so we just set it to `None`.
@@ -53,8 +51,7 @@ class OBJ_META(typing.NamedTupleMeta):
 
 		# Rewrite `__new__` method to make all arguments keyword-only.
 		# This is very hacky code. Do not try this at home.
-		arg_list = ''.join(name + ', '  # watch out for singleton tuples
-						   for name in reordered_fields)
+		arg_list = ''.join(name + ', ' for name in reordered_fields) # watch out for singleton tuples
 		s = (f"""
 		def __new__(_cls, *args, {arg_list}):
 			if len(args) > 0:
@@ -62,15 +59,13 @@ class OBJ_META(typing.NamedTupleMeta):
 								"with keyword arguments.")
 			return _tuple_new(_cls, ({arg_list}))
 		""").strip()
-		new_method_namespace = {'_tuple_new': tuple.__new__,
-								'__name__': f'namedtuple_{typename}'}
+		new_method_namespace = {'_tuple_new': tuple.__new__, '__name__': f'namedtuple_{typename}'}
 		exec(s, new_method_namespace)
 		__new__ = new_method_namespace['__new__']
 		__new__.__qualname__ = f"{typename}.__new__"
 		__new__.__doc__ = nm_tpl.__new__.__doc__
 		__new__.__annotations__ = nm_tpl.__new__.__annotations__
-		__new__.__kwdefaults__ = {name: namespace[name]
-								  for name in fields_with_default}
+		__new__.__kwdefaults__ = {name: namespace[name] for name in fields_with_default}
 		nm_tpl.__new__ = __new__
 
 		# Wrap the return type in `OBJ_META` so it can be subclassed.
@@ -103,8 +98,7 @@ class OBJ_BASE(metaclass=OBJ_META):
 		# Copied from typing.Generic.
 		if cls is OBJ_BASE:
 			# Prevent instantiation of `OBJ_BASE` class.
-			raise TypeError("Type OBJ_BASE cannot be instantiated; "
-							"it can be used only as a base class")
+			raise TypeError("Type OBJ_BASE cannot be instantiated; it can be used only as a base class")
 		if (super().__new__ is object.__new__ and
 				cls.__init__ is not object.__init__):
 			obj = super().__new__(cls)
